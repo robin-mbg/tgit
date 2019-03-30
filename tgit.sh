@@ -7,16 +7,15 @@ GIT_COMMAND_ARGS="$@"
 TERMINAL_COLS=$(tput cols)
 
 execute_git_in_background () {
-    git "$GIT_COMMAND_ARGS" &
+    git $GIT_COMMAND_ARGS &
     git_PID=$!
     echo "Launching $GIT_COMMAND_ARGS with PID $git_PID"
 }
 
 end_if_git_finished () {
-    if [ -n "$git_PID" -a -e /proc/$git_PID ]; then
-        echo "\n$UPLINE$ERASELINE"
-    else
-        echo ""
+    if [[ -z `ps -p $git_PID | grep $git_PID` ]] ;
+    then
+        echo "Finished."
         exit 0
     fi
 }
@@ -45,7 +44,7 @@ erase_tortoise () {
 
 move_tortoise () {    
     
-    print_tortoise $TERMIAL_COLS
+    print_tortoise $TERMINAL_COLS
     #for i in {$(expr $(tput cols) - 20)..1}
     for i in {74..1}
     do
