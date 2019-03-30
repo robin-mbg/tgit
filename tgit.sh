@@ -1,38 +1,34 @@
 #! /bin/bash
 
-if [[ "$@" == clone* ]] ;
-then
-    git "$@" & &> tgit_tmp.txt
-    git_PID=$!
-    echo "Started git clone with PID $git_PID"
-elif [[ "$@" == pull* ]] ;
-then
-    git "$@" & &> tgit_tmp.txt
-    git_PID=$!
-    echo "Started git pull with PID $git_PID"
-elif [[ "$@" ==  push* ]] ;
-then
-    git "$@" & &> tgit_tmp.txt
-    git_PID=$!
-    echo "Started git push with PID $git_PID"
-else
-    git "$@"
-    exit 0
-fi
-
 UPLINE=$(tput cuu1)
 ERASELINE=$(tput el)
+
+GIT_COMMAND_ARGS="$@"
+TERMINAL_COLS=$(tput cols)
+
+execute_git_in_background () {
+    git "$GIT_COMMAND_ARGS" &
+    git_PID=$!
+    echo "Launching $GIT_COMMAND_ARGS with PID $git_PID"
+}
 
 end_if_git_finished () {
     if [ -n "$git_PID" -a -e /proc/$git_PID ]; then
         echo "\n$UPLINE$ERASELINE"
     else
-        echo "Process for PID $git_PID has finished"
-        cat tgit_tmp.txt
-        # rm tgit_tmp.txt
+        echo ""
         exit 0
     fi
 }
+
+# Execute only long-running git commands with the progress tortoise
+if [[ "$@" == clone* || "$@" == pull* || "$@" ==  push* || "$@" ==  fetch* ]] ;
+then
+    execute_git_in_background
+else
+    git "$@"
+    exit 0
+fi
 
 print_tortoise () {
     PREFIX=`seq 1 $1 | sed 's/.*/ /' | tr -d '\n'`
@@ -47,22 +43,21 @@ erase_tortoise () {
   echo "$UPLINE$ERASELINE$UPLINE$ERASELINE$UPLINE$ERASELINE$UPLINE$ERASELINE$UPLINE$ERASELINE$UPLINE$ERASELINE"
 }
 
-move_tortoise () {
+move_tortoise () {    
     
-    print_tortoise 0
-    for i in {30..1}
+    print_tortoise $TERMIAL_COLS
+    #for i in {$(expr $(tput cols) - 20)..1}
+    for i in {74..1}
     do
-        erase_tortoise
         end_if_git_finished
+        erase_tortoise      
         print_tortoise $i
         
-        sleep .1
+        sleep .05
     done
 }
 
-echo "tgit CLI\n"
-
-for i in {1..10}
+for i in {1..100}
 do
     move_tortoise
     erase_tortoise
