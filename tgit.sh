@@ -16,7 +16,6 @@ execute_git_in_background () {
 end_if_git_finished () {
     if [[ -z `ps -p $git_PID | grep $git_PID` ]] ;
     then
-        tput reset
         echo "Finished."
         exit 0
     fi
