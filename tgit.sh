@@ -1,10 +1,11 @@
 #! /bin/bash
 
+export TGIT_ENABLED=true
+
 UPLINE=$(tput cuu1)
 ERASELINE=$(tput el)
 
 GIT_COMMAND_ARGS="$@"
-TERMINAL_COLS=$(tput cols)
 
 execute_git_in_background () {
     git $GIT_COMMAND_ARGS &
@@ -15,6 +16,7 @@ execute_git_in_background () {
 end_if_git_finished () {
     if [[ -z `ps -p $git_PID | grep $git_PID` ]] ;
     then
+        tput reset
         echo "Finished."
         exit 0
     fi
@@ -25,8 +27,7 @@ if [[ "$@" == clone* || "$@" == pull* || "$@" ==  push* || "$@" ==  fetch* ]] ;
 then
     execute_git_in_background
 else
-    git "$@"
-    exit 0
+    exit git "$@"
 fi
 
 print_tortoise () {
@@ -43,9 +44,7 @@ erase_tortoise () {
 }
 
 move_tortoise () {    
-    
     print_tortoise $TERMINAL_COLS
-    #for i in {$(expr $(tput cols) - 20)..1}
     for i in {74..1}
     do
         end_if_git_finished
@@ -61,4 +60,3 @@ do
     move_tortoise
     erase_tortoise
 done
-
